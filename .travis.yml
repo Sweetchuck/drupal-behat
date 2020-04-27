@@ -1,15 +1,14 @@
-sudo: required
+
+os: linux
+language: php
 
 services:
   - docker
-  - docker-compose
 
 env:
   global:
     - DOCKER_COMPOSE_VERSION=1.17.1
   matrix:
-    - DRUPAL_VERSION=8.6.x-dev
-    - DRUPAL_VERSION=8.7.x-dev
     - DRUPAL_VERSION=8.8.x-dev
 
 before_install:
