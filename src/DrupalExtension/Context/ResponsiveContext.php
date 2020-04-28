@@ -1,108 +1,117 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace NuvoleWeb\Drupal\DrupalExtension\Context;
 
 use Behat\Mink\Exception\ExpectationException;
-use Webmozart\Assert\Assert;
+use NuvoleWeb\Drupal\DrupalExtension\Component\ResolutionComponent;
 
-/**
- * Class ResponsiveContext.
- *
- * @package NuvoleWeb\Drupal\DrupalExtension\Context
- */
 class ResponsiveContext extends RawMinkContext {
 
   /**
-   * Default list of device definitions.
-   *
    * @var array
    */
   protected $defaultDevices = [
-    'mobile_portrait' => '360x640',
-    'mobile_landscape' => '640x360',
-    'tablet_portrait' => '768x1024',
-    'tablet_landscape' => '1024x768',
-    'laptop' => '1280x800',
-    'desktop' => '2560x1440',
+    'mobile_portrait' => [
+      'width' => 360,
+      'height' => 640,
+    ],
+    'mobile_landscape' => [
+      'width' => 640,
+      'height' => 360,
+    ],
+    'tablet_portrait' => [
+      'width' => 768,
+      'height' => 1024,
+    ],
+    'tablet_landscape' => [
+      'width' => 1024,
+      'height' => 768,
+    ],
+    'laptop' => [
+      'width' => 1280,
+      'height' => 800,
+    ],
+    'desktop' => [
+      'width' => 2560,
+      'height' => 1440,
+    ],
   ];
 
   /**
-   * Contains list of processed devices.
-   *
-   * @var array
+   * @var \NuvoleWeb\Drupal\DrupalExtension\Component\ResolutionComponent[]
    */
   protected $devices = [];
 
   /**
-   * ResponsiveContext constructor.
-   *
    * @param array $devices
    *   List of devices.
    */
   public function __construct(array $devices = []) {
-    $this->devices = $devices + $this->defaultDevices;
-  }
-
-  /**
-   * Get device resolution.
-   *
-   * @param string $name
-   *   Device name.
-   *
-   * @return \NuvoleWeb\Drupal\DrupalExtension\Component\ResolutionComponent
-   *   Resolution object.
-   */
-  protected function getDeviceResolution($name) {
-    Assert::keyExists($this->devices, $name, "Device '{$name}' not found.");
-    $service = $this->getContainer()->get('drupal.behat.component.resolution');
-    $service->parse($this->devices[$name]);
-    return $service;
+    foreach ($devices + $this->defaultDevices as $name => $size) {
+      $this->devices[$name] = (new ResolutionComponent())
+        ->setWidth($size['width'])
+        ->setHeight($size['height']);
+    }
   }
 
   /**
    * Resize browser window according to the specified device.
    *
-   * @param string $device
-   *   Device name as specified in behat.yml.
-   *
    * @Given I view the site on a :device device
    */
-  public function assertDeviceScreenResize($device) {
-    $resolution = $this->getDeviceResolution($device);
-    $this->getSession()->resizeWindow((int) $resolution->getWidth(), (int) $resolution->getHeight(), 'current');
+  public function doBrowserWindowResizeToDevice(string $device, ?string $windowName = NULL) {
+    assert(
+      array_key_exists($device, $this->devices),
+      "Device '{$device}' not found."
+    );
+
+    $this->doBrowserWindowResize(
+        $this->devices[$device]->getWidth(),
+        $this->devices[$device]->getHeight(),
+        $windowName
+    );
   }
 
   /**
-   * Resize browser window width.
-   *
-   * @param string $size
-   *   Size in pixel.
-   *
-   * @throws \Behat\Mink\Exception\ExpectationException
-   *
-   * @Then the browser window width should be :size
+   * @Given /^the window size is (?P<width>\d+)(x|×)(?P<height>\d+)$/
    */
-  public function assertBrowserWindowWidth($size) {
-    $actual = $this->getSession()->evaluateScript('return window.innerWidth;');
-    if ($actual != $size) {
-      throw new ExpectationException("Browser window width expected to be {$size} but it is {$actual} instead.", $this->getSession());
+  public function doBrowserWindowResize($width, $height, ?string $windowName = NULL) {
+    $this->getSession()->resizeWindow(intval($width), intval($height), $windowName);
+  }
+
+  /**
+   * @param string $width
+   *   Expected browser window width in pixel.
+   *
+   * @Then /^the browser window width should be (?P<width>\d+)$/
+   */
+  public function assertBrowserWindowWidth($width) {
+    $driver = $this->getSession();
+    $actual = $driver->evaluateScript('return window.outerWidth;');
+    if (intval($actual) !== intval($width)) {
+      throw new ExpectationException(
+        "Browser window width expected to be {$width} but it is {$actual} instead.",
+        $driver
+      );
     }
   }
 
   /**
-   * Resize browser window height.
+   * @param string $height
+   *   Expected browser window height in pixel.
    *
-   * @param string $size
-   *   Size in pixel.
-   *
-   * @throws \Behat\Mink\Exception\ExpectationException
-   *
-   * @Then the browser window height should be :size
+   * @Then /^the browser window height should be (?P<height>\d+)$/
    */
-  public function assertBrowserWindowHeight($size) {
-    $actual = $this->getSession()->evaluateScript('return window.outerHeight;');
-    if ($actual != $size) {
-      throw new ExpectationException("Browser window height expected to be {$size} but it is {$actual} instead.", $this->getSession());
+  public function assertBrowserWindowHeight($height) {
+    $driver = $this->getSession();
+    $actual = $driver->evaluateScript('return window.outerHeight;');
+    if (intval($actual) !== intval($height)) {
+      throw new ExpectationException(
+        "Browser window height expected to be {$height} but it is {$actual} instead.",
+        $driver
+      );
     }
   }
 

@@ -3,6 +3,7 @@
 namespace NuvoleWeb\Drupal\DrupalExtension\Context;
 
 use Behat\Gherkin\Node\TableNode;
+use Behat\Mink\Exception\ElementNotFoundException;
 
 /**
  * Extends Drupal Extension DrupalContext class.
@@ -68,13 +69,34 @@ class DrupalContext extends RawDrupalContext {
    * @When I submit the content form
    */
   public function submitContentForm() {
-    $element = $this->getSession()->getPage();
-    $submit = $element->findButton($this->getDrupalText('node_submit_label'));
-    if (empty($submit)) {
-      throw new \Exception(sprintf("No submit button at %s", $this->getSession()->getCurrentUrl()));
+    $locator = $this->getDrupalText('node_submit_label');
+
+    $driver = $this->getSession();
+
+    $button = $driver
+      ->getPage()
+      ->findButton($locator);
+
+    if (!$button) {
+      throw new ElementNotFoundException(
+        $driver,
+        'input',
+        'named',
+        $locator
+      );
     }
-    // Submit the form.
-    $submit->click();
+
+    $elementId = $button->getAttribute('id');
+    $elementIdSafe = var_export($elementId, TRUE);
+    $function = "(function () {document.getElementById($elementIdSafe).scrollIntoView(false); })();";
+    try {
+      $driver->executeScript($function);
+    }
+    catch (\Exception $e) {
+      // Do nothing.
+    }
+
+    $button->press();
   }
 
   /**

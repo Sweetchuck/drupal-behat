@@ -12,21 +12,21 @@ env:
     - DRUPAL_VERSION=8.8.x-dev
 
 before_install:
-  - docker-compose up -d
+  - docker-compose up --detach
   - docker ps
 
 install:
-  - docker-compose exec -u root php composer require drupal/core-recommended:$DRUPAL_VERSION --dev --prefer-dist
+  - docker-compose exec --user root php composer require drupal/core-recommended:$DRUPAL_VERSION --dev --prefer-dist
 
 before_script:
-  - docker-compose exec -u root php ./vendor/bin/run drupal:site-setup
-  - docker-compose exec -u root php ./vendor/bin/run drupal:site-install
-  - docker-compose exec -u root php chown -R www-data:www-data build
+  - docker-compose exec --user root php ./vendor/bin/run drupal:site-setup
+  - docker-compose exec --user root php ./vendor/bin/run drupal:site-install
+  - docker-compose exec --user root php chown -R www-data:www-data build
 
 script:
-  - docker-compose exec -u root php ./vendor/bin/grumphp run
-  - docker-compose exec -u root php ./vendor/bin/phpunit
-  - docker-compose exec -u root php ./vendor/bin/behat -c behat-$DRUPAL_VERSION.yml
+  - docker-compose exec --user root php ./vendor/bin/grumphp run
+  - docker-compose exec --user root php ./vendor/bin/phpunit
+  - docker-compose exec --user root php ./vendor/bin/behat --config behat-$DRUPAL_VERSION.yml
 
 notifications:
   email: false

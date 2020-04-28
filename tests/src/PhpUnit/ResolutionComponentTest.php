@@ -1,42 +1,23 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace NuvoleWeb\Drupal\Tests\PhpUnit;
 
-use InvalidArgumentException;
 use NuvoleWeb\Drupal\DrupalExtension\Component\ResolutionComponent;
 
 /**
- * Class ResolutionComponentTest.
- *
- * @coversDefaultClass \NuvoleWeb\Drupal\DrupalExtension\Component\ResolutionComponent
+ * @covers \NuvoleWeb\Drupal\DrupalExtension\Component\ResolutionComponent
  */
 class ResolutionComponentTest extends AbstractTest {
 
-  /**
-   * Test resolution parsing.
-   *
-   * @covers ::parse
-   * @covers ::getWidth
-   * @covers ::getHeight
-   */
-  public function testParse() {
-    $resolution = new ResolutionComponent();
-    $resolution->parse('360x640');
-    $this->assertEquals('360', $resolution->getWidth());
-    $this->assertEquals('640', $resolution->getHeight());
-  }
+  public function testCreateFromExpression() {
+    $resolution = (new ResolutionComponent())
+      ->setWidth(42)
+      ->setHeight(84);
 
-  /**
-   * Test invalid resolution.
-   *
-   * @covers ::parse
-   * @covers ::getWidth
-   * @covers ::getHeight
-   */
-  public function testInvalidResolution() {
-    $this->expectException(InvalidArgumentException::class);
-    $resolution = new ResolutionComponent();
-    $resolution->parse('absdx123');
+    $this->assertSame(42, $resolution->getWidth());
+    $this->assertSame(84, $resolution->getHeight());
   }
 
 }

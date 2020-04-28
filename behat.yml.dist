@@ -15,12 +15,24 @@ default:
         - NuvoleWeb\Drupal\DrupalExtension\Context\CKEditorContext
         - NuvoleWeb\Drupal\DrupalExtension\Context\ResponsiveContext:
             devices:
-              mobile_portrait: 360x640
-              mobile_landscape: 640x360
-              tablet_portrait: 768x1024
-              tablet_landscape: 1024x768
-              laptop: 1280x800
-              desktop: 2560x1440
+              mobile_portrait:
+                width: 360
+                height: 640
+              mobile_landscape:
+                width: 640
+                height: 360
+              tablet_portrait:
+                width: 768
+                height: 1024
+              tablet_landscape:
+                width: 1024
+                height: 768
+              laptop:
+                width: 1280
+                height: 800
+              desktop:
+                width: 2560
+                height: 1440
         - NuvoleWeb\Drupal\DrupalExtension\Context\PositionContext
         - NuvoleWeb\Drupal\DrupalExtension\Context\VisibilityContext
         - NuvoleWeb\Drupal\DrupalExtension\Context\SelectFieldContext
